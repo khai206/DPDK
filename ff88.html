@@ -254,7 +254,7 @@
         <div class="welcome-section">
             <h1>Chào Mừng</h1>
             <p>Đăng ký tài khoản mới hoặc đăng nhập để truy cập vào hệ thống của chúng tôi.</p>
-            <p>API Server: Mock API (Mô phỏng API của thầy)</p>
+            <p>API Server: https://banhngot.fitlhu.com</p>
         </div>
         
         <div class="form-section">
@@ -329,186 +329,9 @@
     </div>
 
     <script>
-        // ==================== MOCK API SERVER ====================
-        class MockAPIServer {
-            constructor() {
-                this.users = JSON.parse(localStorage.getItem('mockUsers')) || [];
-                this.nextId = parseInt(localStorage.getItem('mockNextId')) || 1;
-                this.tokens = new Map();
-            }
+        // API Configuration
+        const API_BASE_URL = 'https://banhngot.fitlhu.com/api/auth';
 
-            // Lưu dữ liệu vào localStorage
-            saveData() {
-                localStorage.setItem('mockUsers', JSON.stringify(this.users));
-                localStorage.setItem('mockNextId', this.nextId.toString());
-            }
-
-            // Tạo token JWT giả
-            generateToken(userId) {
-                const token = `mock_jwt_token_${userId}_${Date.now()}`;
-                this.tokens.set(token, userId);
-                return token;
-            }
-
-            // Xác thực token
-            verifyToken(token) {
-                return this.tokens.has(token);
-            }
-
-            // Lấy userId từ token
-            getUserIdFromToken(token) {
-                return this.tokens.get(token);
-            }
-
-            // Đăng ký user mới
-            async register(userData) {
-                await this.delay(1000); // Giả lập độ trễ mạng
-
-                // Kiểm tra username đã tồn tại
-                if (this.users.find(u => u.username === userData.username)) {
-                    return {
-                        status: 400,
-                        data: {
-                            success: false,
-                            message: 'Có lỗi xảy ra',
-                            error: 'Tên người dùng đã tồn tại'
-                        }
-                    };
-                }
-
-                // Kiểm tra email đã tồn tại
-                if (this.users.find(u => u.email === userData.email)) {
-                    return {
-                        status: 400,
-                        data: {
-                            success: false,
-                            message: 'Có lỗi xảy ra',
-                            error: 'Email đã tồn tại'
-                        }
-                    };
-                }
-
-                // Tạo user mới
-                const newUser = {
-                    id: this.nextId++,
-                    username: userData.username,
-                    email: userData.email,
-                    password: userData.password, // Trong thực tế nên hash password
-                    full_name: userData.full_name || '',
-                    avatar: userData.avatar || 'https://via.placeholder.com/150',
-                    created_at: new Date().toISOString()
-                };
-
-                this.users.push(newUser);
-                this.saveData();
-
-                // Tạo token
-                const token = this.generateToken(newUser.id);
-
-                return {
-                    status: 201,
-                    data: {
-                        success: true,
-                        message: 'Đăng nhập thành công',
-                        data: {
-                            ...newUser,
-                            token: token
-                        }
-                    }
-                };
-            }
-
-            // Đăng nhập
-            async login(credentials) {
-                await this.delay(800); // Giả lập độ trễ mạng
-
-                const user = this.users.find(u => 
-                    u.username === credentials.username && 
-                    u.password === credentials.password
-                );
-
-                if (!user) {
-                    return {
-                        status: 401,
-                        data: {
-                            success: false,
-                            message: 'Có lỗi xảy ra',
-                            error: 'Tên người dùng hoặc mật khẩu sai'
-                        }
-                    };
-                }
-
-                // Tạo token
-                const token = this.generateToken(user.id);
-
-                return {
-                    status: 200,
-                    data: {
-                        success: true,
-                        message: 'Đăng nhập thành công',
-                        data: {
-                            id: user.id,
-                            username: user.username,
-                            email: user.email,
-                            full_name: user.full_name,
-                            avatar: user.avatar,
-                            token: token
-                        }
-                    }
-                };
-            }
-
-            // Lấy thông tin profile
-            async getProfile(token) {
-                await this.delay(500); // Giả lập độ trễ mạng
-
-                if (!this.verifyToken(token)) {
-                    return {
-                        status: 401,
-                        data: {
-                            success: false,
-                            message: 'Có lỗi xảy ra',
-                            error: 'Không tìm thấy token hoặc token không hợp lệ'
-                        }
-                    };
-                }
-
-                const userId = this.getUserIdFromToken(token);
-                const user = this.users.find(u => u.id === userId);
-
-                if (!user) {
-                    return {
-                        status: 404,
-                        data: {
-                            success: false,
-                            message: 'Có lỗi xảy ra',
-                            error: 'Không tìm thấy người dùng'
-                        }
-                    };
-                }
-
-                // Trả về user data không bao gồm password
-                const { password, ...userData } = user;
-
-                return {
-                    status: 200,
-                    data: {
-                        success: true,
-                        data: userData
-                    }
-                };
-            }
-
-            // Giả lập độ trễ mạng
-            delay(ms) {
-                return new Promise(resolve => setTimeout(resolve, ms));
-            }
-        }
-
-        // Khởi tạo Mock API Server
-        const mockAPI = new MockAPIServer();
-
-        // ==================== FRONTEND CODE ====================
         // DOM Elements
         const toggleBtns = document.querySelectorAll('.toggle-btn');
         const forms = document.querySelectorAll('.form');
@@ -573,6 +396,30 @@
             errorAlert.style.display = 'none';
         }
 
+        // API Request Helper
+        async function apiRequest(url, options = {}) {
+            try {
+                const response = await fetch(url, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...options.headers
+                    },
+                    ...options
+                });
+
+                const data = await response.json();
+                
+                return {
+                    status: response.status,
+                    data: data,
+                    ok: response.ok
+                };
+            } catch (error) {
+                console.error('API Request error:', error);
+                throw error;
+            }
+        }
+
         // Handle login form submission
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -581,20 +428,28 @@
             const password = document.getElementById('login-password').value;
             
             setLoading(loginBtn, true);
+            clearAlerts();
             
             try {
-                // Sử dụng Mock API thay vì real API
-                const response = await mockAPI.login({ username, password });
+                const result = await apiRequest(`${API_BASE_URL}/login`, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        username,
+                        password
+                    })
+                });
                 
-                if (response.status === 200 && response.data.success) {
+                if (result.status === 200 && result.data.success) {
                     // Store token in localStorage
-                    localStorage.setItem('token', response.data.data.token);
-                    localStorage.setItem('user', JSON.stringify(response.data.data));
+                    localStorage.setItem('token', result.data.data.token);
+                    localStorage.setItem('user', JSON.stringify(result.data.data));
                     
                     showAlert(successAlert, 'Đăng nhập thành công!');
-                    showProfile(response.data.data);
+                    showProfile(result.data.data);
+                } else if (result.status === 401) {
+                    showAlert(errorAlert, result.data.error || 'Tên đăng nhập hoặc mật khẩu không đúng!');
                 } else {
-                    showAlert(errorAlert, response.data.error || 'Đăng nhập thất bại!');
+                    showAlert(errorAlert, result.data.error || 'Đăng nhập thất bại!');
                 }
             } catch (error) {
                 showAlert(errorAlert, 'Có lỗi xảy ra khi kết nối đến server!');
@@ -615,18 +470,21 @@
             const avatar = document.getElementById('register-avatar').value;
             
             setLoading(registerBtn, true);
+            clearAlerts();
             
             try {
-                // Sử dụng Mock API thay vì real API
-                const response = await mockAPI.register({
-                    username,
-                    email,
-                    password,
-                    full_name,
-                    avatar
+                const result = await apiRequest(`${API_BASE_URL}/register`, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        username,
+                        email,
+                        password,
+                        full_name,
+                        avatar
+                    })
                 });
                 
-                if (response.status === 201 && response.data.success) {
+                if (result.status === 201 && result.data.success) {
                     showAlert(successAlert, 'Đăng ký thành công! Vui lòng đăng nhập.');
                     
                     // Clear form
@@ -634,8 +492,10 @@
                     
                     // Switch to login form
                     document.querySelector('[data-target="login-form"]').click();
+                } else if (result.status === 400) {
+                    showAlert(errorAlert, result.data.error || 'Thông tin đăng ký không hợp lệ!');
                 } else {
-                    showAlert(errorAlert, response.data.error || 'Đăng ký thất bại!');
+                    showAlert(errorAlert, result.data.error || 'Đăng ký thất bại!');
                 }
             } catch (error) {
                 showAlert(errorAlert, 'Có lỗi xảy ra khi kết nối đến server!');
@@ -644,6 +504,36 @@
                 setLoading(registerBtn, false);
             }
         });
+
+        // Get user profile from API
+        async function getProfile() {
+            const token = localStorage.getItem('token');
+            
+            if (!token) {
+                return null;
+            }
+            
+            try {
+                const result = await apiRequest(`${API_BASE_URL}/profile`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (result.status === 200 && result.data.success) {
+                    return result.data.data;
+                } else {
+                    // Token invalid, clear storage
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                    return null;
+                }
+            } catch (error) {
+                console.error('Get profile error:', error);
+                return null;
+            }
+        }
 
         // Show user profile
         function showProfile(userData) {
@@ -654,7 +544,8 @@
             profileSection.classList.add('active');
             
             // Populate profile data
-            document.getElementById('profile-avatar').src = userData.avatar || 'https://via.placeholder.com/100';
+            const avatarUrl = userData.avatar || 'https://via.placeholder.com/100';
+            document.getElementById('profile-avatar').src = avatarUrl;
             
             const profileInfo = document.getElementById('profile-info');
             profileInfo.innerHTML = `
@@ -662,7 +553,7 @@
                 <p><strong>Tên đăng nhập:</strong> ${userData.username}</p>
                 <p><strong>Email:</strong> ${userData.email}</p>
                 <p><strong>Họ và tên:</strong> ${userData.full_name || 'Chưa cập nhật'}</p>
-                <p><strong>Token:</strong> ${userData.token.substring(0, 20)}...</p>
+                <p><strong>Ngày tạo:</strong> ${userData.created_at ? new Date(userData.created_at).toLocaleDateString('vi-VN') : 'N/A'}</p>
             `;
         }
 
@@ -680,15 +571,14 @@
         // Check if user is already logged in on page load
         document.addEventListener('DOMContentLoaded', async () => {
             const token = localStorage.getItem('token');
-            const userData = localStorage.getItem('user');
+            const storedUser = localStorage.getItem('user');
             
-            if (token && userData) {
+            if (token && storedUser) {
                 try {
-                    // Kiểm tra token có hợp lệ không
-                    const response = await mockAPI.getProfile(token);
-                    if (response.status === 200) {
-                        const user = JSON.parse(userData);
-                        showProfile(user);
+                    // Verify token and get fresh user data
+                    const userData = await getProfile();
+                    if (userData) {
+                        showProfile(userData);
                     } else {
                         localStorage.removeItem('token');
                         localStorage.removeItem('user');
@@ -701,35 +591,19 @@
             }
         });
 
-        // Thêm một số user mẫu để test
-        function addSampleUsers() {
-            if (mockAPI.users.length === 0) {
-                mockAPI.users = [
-                    {
-                        id: mockAPI.nextId++,
-                        username: 'testuser',
-                        email: 'test@example.com',
-                        password: '123456',
-                        full_name: 'Nguyễn Văn A',
-                        avatar: 'https://via.placeholder.com/150',
-                        created_at: new Date().toISOString()
-                    },
-                    {
-                        id: mockAPI.nextId++,
-                        username: 'demo',
-                        email: 'demo@example.com',
-                        password: '123456',
-                        full_name: 'Trần Thị B',
-                        avatar: 'https://via.placeholder.com/150',
-                        created_at: new Date().toISOString()
-                    }
-                ];
-                mockAPI.saveData();
-            }
-        }
-
-        // Thêm user mẫu khi trang được tải
-        addSampleUsers();
+        // Add some helpful demo data
+        document.addEventListener('DOMContentLoaded', () => {
+            // Pre-fill login form with demo credentials for testing
+            document.getElementById('login-username').value = 'testuser';
+            document.getElementById('login-password').value = '123456';
+            
+            // Pre-fill register form with sample data
+            document.getElementById('register-username').value = 'user_' + Math.floor(Math.random() * 1000);
+            document.getElementById('register-email').value = 'test' + Math.floor(Math.random() * 1000) + '@example.com';
+            document.getElementById('register-password').value = '123456';
+            document.getElementById('register-fullname').value = 'Nguyễn Văn Demo';
+            document.getElementById('register-avatar').value = 'https://via.placeholder.com/150';
+        });
     </script>
 </body>
 </html>
