@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng ký & Đăng nhập</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            display: flex;
+            width: 100%;
+            max-width: 900px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        .welcome-section {
+            flex: 1;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .welcome-section h1 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+        }
+
+        .welcome-section p {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+
+        .form-section {
+            flex: 1;
+            padding: 40px;
+        }
+
+        .form-container {
+            width: 100%;
+        }
+
+        .form-toggle {
+            display: flex;
+            margin-bottom: 30px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .toggle-btn {
+            flex: 1;
+            padding: 15px;
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            color: #777;
+            transition: all 0.3s;
+        }
+
+        .toggle-btn.active {
+            color: #4facfe;
+            border-bottom: 3px solid #4facfe;
+        }
+
+        .form {
+            display: none;
+        }
+
+        .form.active {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .form h2 {
+            margin-bottom: 25px;
+            color: #333;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border 0.3s;
+        }
+
+        .form-control:focus {
+            border-color: #4facfe;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(79, 172, 254, 0.2);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(79, 172, 254, 0.4);
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .alert {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .profile-section {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .profile-section.active {
+            display: block;
+        }
+
+        .avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin: 0 auto 20px;
+            border: 3px solid #4facfe;
+        }
+
+        .profile-info {
+            margin-bottom: 20px;
+            text-align: left;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .profile-info p {
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .profile-info p:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .logout-btn {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .welcome-section {
+                padding: 30px 20px;
+            }
+            
+            .form-section {
+                padding: 30px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="welcome-section">
+            <h1>Chào Mừng</h1>
+            <p>Đăng ký tài khoản mới hoặc đăng nhập để truy cập vào hệ thống của chúng tôi.</p>
+            <p>API Server: Mock API (Mô phỏng API của thầy)</p>
+        </div>
+        
+        <div class="form-section">
+            <!-- Form Toggle -->
+            <div class="form-toggle">
+                <button class="toggle-btn active" data-target="login-form">Đăng Nhập</button>
+                <button class="toggle-btn" data-target="register-form">Đăng Ký</button>
+            </div>
+            
+            <!-- Alert Messages -->
+            <div class="alert alert-success" id="success-alert"></div>
+            <div class="alert alert-error" id="error-alert"></div>
+            
+            <!-- Login Form -->
+            <div class="form active" id="login-form">
+                <h2>Đăng Nhập</h2>
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="login-username">Tên đăng nhập</label>
+                        <input type="text" id="login-username" class="form-control" placeholder="Nhập tên đăng nhập" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Mật khẩu</label>
+                        <input type="password" id="login-password" class="form-control" placeholder="Nhập mật khẩu" required>
+                    </div>
+                    <button type="submit" class="btn" id="login-btn">
+                        <span class="btn-text">Đăng Nhập</span>
+                    </button>
+                </form>
+            </div>
+            
+            <!-- Register Form -->
+            <div class="form" id="register-form">
+                <h2>Đăng Ký Tài Khoản</h2>
+                <form id="registerForm">
+                    <div class="form-group">
+                        <label for="register-username">Tên đăng nhập *</label>
+                        <input type="text" id="register-username" class="form-control" placeholder="Nhập tên đăng nhập" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="register-email">Email *</label>
+                        <input type="email" id="register-email" class="form-control" placeholder="Nhập email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="register-password">Mật khẩu *</label>
+                        <input type="password" id="register-password" class="form-control" placeholder="Nhập mật khẩu" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="register-fullname">Họ và tên</label>
+                        <input type="text" id="register-fullname" class="form-control" placeholder="Nhập họ và tên">
+                    </div>
+                    <div class="form-group">
+                        <label for="register-avatar">Avatar URL</label>
+                        <input type="text" id="register-avatar" class="form-control" placeholder="https://example.com/avatar.jpg">
+                    </div>
+                    <button type="submit" class="btn" id="register-btn">
+                        <span class="btn-text">Đăng Ký</span>
+                    </button>
+                </form>
+            </div>
+            
+            <!-- Profile Section -->
+            <div class="profile-section" id="profile-section">
+                <h2>Thông Tin Cá Nhân</h2>
+                <img src="" alt="Avatar" class="avatar" id="profile-avatar">
+                <div class="profile-info" id="profile-info">
+                    <!-- Profile data will be populated here -->
+                </div>
+                <button class="btn logout-btn" id="logout-btn">Đăng Xuất</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== MOCK API SERVER ====================
+        class MockAPIServer {
+            constructor() {
+                this.users = JSON.parse(localStorage.getItem('mockUsers')) || [];
+                this.nextId = parseInt(localStorage.getItem('mockNextId')) || 1;
+                this.tokens = new Map();
+            }
+
+            // Lưu dữ liệu vào localStorage
+            saveData() {
+                localStorage.setItem('mockUsers', JSON.stringify(this.users));
+                localStorage.setItem('mockNextId', this.nextId.toString());
+            }
+
+            // Tạo token JWT giả
+            generateToken(userId) {
+                const token = `mock_jwt_token_${userId}_${Date.now()}`;
+                this.tokens.set(token, userId);
+                return token;
+            }
+
+            // Xác thực token
+            verifyToken(token) {
+                return this.tokens.has(token);
+            }
+
+            // Lấy userId từ token
+            getUserIdFromToken(token) {
+                return this.tokens.get(token);
+            }
+
+            // Đăng ký user mới
+            async register(userData) {
+                await this.delay(1000); // Giả lập độ trễ mạng
+
+                // Kiểm tra username đã tồn tại
+                if (this.users.find(u => u.username === userData.username)) {
+                    return {
+                        status: 400,
+                        data: {
+                            success: false,
+                            message: 'Có lỗi xảy ra',
+                            error: 'Tên người dùng đã tồn tại'
+                        }
+                    };
+                }
+
+                // Kiểm tra email đã tồn tại
+                if (this.users.find(u => u.email === userData.email)) {
+                    return {
+                        status: 400,
+                        data: {
+                            success: false,
+                            message: 'Có lỗi xảy ra',
+                            error: 'Email đã tồn tại'
+                        }
+                    };
+                }
+
+                // Tạo user mới
+                const newUser = {
+                    id: this.nextId++,
+                    username: userData.username,
+                    email: userData.email,
+                    password: userData.password, // Trong thực tế nên hash password
+                    full_name: userData.full_name || '',
+                    avatar: userData.avatar || 'https://via.placeholder.com/150',
+                    created_at: new Date().toISOString()
+                };
+
+                this.users.push(newUser);
+                this.saveData();
+
+                // Tạo token
+                const token = this.generateToken(newUser.id);
+
+                return {
+                    status: 201,
+                    data: {
+                        success: true,
+                        message: 'Đăng nhập thành công',
+                        data: {
+                            ...newUser,
+                            token: token
+                        }
+                    }
+                };
+            }
+
+            // Đăng nhập
+            async login(credentials) {
+                await this.delay(800); // Giả lập độ trễ mạng
+
+                const user = this.users.find(u => 
+                    u.username === credentials.username && 
+                    u.password === credentials.password
+                );
+
+                if (!user) {
+                    return {
+                        status: 401,
+                        data: {
+                            success: false,
+                            message: 'Có lỗi xảy ra',
+                            error: 'Tên người dùng hoặc mật khẩu sai'
+                        }
+                    };
+                }
+
+                // Tạo token
+                const token = this.generateToken(user.id);
+
+                return {
+                    status: 200,
+                    data: {
+                        success: true,
+                        message: 'Đăng nhập thành công',
+                        data: {
+                            id: user.id,
+                            username: user.username,
+                            email: user.email,
+                            full_name: user.full_name,
+                            avatar: user.avatar,
+                            token: token
+                        }
+                    }
+                };
+            }
+
+            // Lấy thông tin profile
+            async getProfile(token) {
+                await this.delay(500); // Giả lập độ trễ mạng
+
+                if (!this.verifyToken(token)) {
+                    return {
+                        status: 401,
+                        data: {
+                            success: false,
+                            message: 'Có lỗi xảy ra',
+                            error: 'Không tìm thấy token hoặc token không hợp lệ'
+                        }
+                    };
+                }
+
+                const userId = this.getUserIdFromToken(token);
+                const user = this.users.find(u => u.id === userId);
+
+                if (!user) {
+                    return {
+                        status: 404,
+                        data: {
+                            success: false,
+                            message: 'Có lỗi xảy ra',
+                            error: 'Không tìm thấy người dùng'
+                        }
+                    };
+                }
+
+                // Trả về user data không bao gồm password
+                const { password, ...userData } = user;
+
+                return {
+                    status: 200,
+                    data: {
+                        success: true,
+                        data: userData
+                    }
+                };
+            }
+
+            // Giả lập độ trễ mạng
+            delay(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+        }
+
+        // Khởi tạo Mock API Server
+        const mockAPI = new MockAPIServer();
+
+        // ==================== FRONTEND CODE ====================
+        // DOM Elements
+        const toggleBtns = document.querySelectorAll('.toggle-btn');
+        const forms = document.querySelectorAll('.form');
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
+        const profileSection = document.getElementById('profile-section');
+        const successAlert = document.getElementById('success-alert');
+        const errorAlert = document.getElementById('error-alert');
+        const logoutBtn = document.getElementById('logout-btn');
+        const loginBtn = document.getElementById('login-btn');
+        const registerBtn = document.getElementById('register-btn');
+
+        // Toggle between forms
+        toggleBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const targetForm = btn.getAttribute('data-target');
+                
+                // Update active toggle button
+                toggleBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                // Show target form
+                forms.forEach(form => {
+                    form.classList.remove('active');
+                    if (form.id === targetForm) {
+                        form.classList.add('active');
+                    }
+                });
+                
+                // Hide profile section if visible
+                profileSection.classList.remove('active');
+                
+                // Clear alerts
+                clearAlerts();
+            });
+        });
+
+        // Show loading state
+        function setLoading(button, isLoading) {
+            const btnText = button.querySelector('.btn-text');
+            if (isLoading) {
+                button.disabled = true;
+                btnText.innerHTML = `<div class="loading"></div>Đang xử lý...`;
+            } else {
+                button.disabled = false;
+                btnText.textContent = button === loginBtn ? 'Đăng Nhập' : 'Đăng Ký';
+            }
+        }
+
+        // Show alert message
+        function showAlert(alertElement, message) {
+            alertElement.textContent = message;
+            alertElement.style.display = 'block';
+            setTimeout(() => {
+                alertElement.style.display = 'none';
+            }, 5000);
+        }
+
+        // Clear all alerts
+        function clearAlerts() {
+            successAlert.style.display = 'none';
+            errorAlert.style.display = 'none';
+        }
+
+        // Handle login form submission
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const username = document.getElementById('login-username').value;
+            const password = document.getElementById('login-password').value;
+            
+            setLoading(loginBtn, true);
+            
+            try {
+                // Sử dụng Mock API thay vì real API
+                const response = await mockAPI.login({ username, password });
+                
+                if (response.status === 200 && response.data.success) {
+                    // Store token in localStorage
+                    localStorage.setItem('token', response.data.data.token);
+                    localStorage.setItem('user', JSON.stringify(response.data.data));
+                    
+                    showAlert(successAlert, 'Đăng nhập thành công!');
+                    showProfile(response.data.data);
+                } else {
+                    showAlert(errorAlert, response.data.error || 'Đăng nhập thất bại!');
+                }
+            } catch (error) {
+                showAlert(errorAlert, 'Có lỗi xảy ra khi kết nối đến server!');
+                console.error('Login error:', error);
+            } finally {
+                setLoading(loginBtn, false);
+            }
+        });
+
+        // Handle register form submission
+        registerForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const username = document.getElementById('register-username').value;
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+            const full_name = document.getElementById('register-fullname').value;
+            const avatar = document.getElementById('register-avatar').value;
+            
+            setLoading(registerBtn, true);
+            
+            try {
+                // Sử dụng Mock API thay vì real API
+                const response = await mockAPI.register({
+                    username,
+                    email,
+                    password,
+                    full_name,
+                    avatar
+                });
+                
+                if (response.status === 201 && response.data.success) {
+                    showAlert(successAlert, 'Đăng ký thành công! Vui lòng đăng nhập.');
+                    
+                    // Clear form
+                    registerForm.reset();
+                    
+                    // Switch to login form
+                    document.querySelector('[data-target="login-form"]').click();
+                } else {
+                    showAlert(errorAlert, response.data.error || 'Đăng ký thất bại!');
+                }
+            } catch (error) {
+                showAlert(errorAlert, 'Có lỗi xảy ra khi kết nối đến server!');
+                console.error('Register error:', error);
+            } finally {
+                setLoading(registerBtn, false);
+            }
+        });
+
+        // Show user profile
+        function showProfile(userData) {
+            // Hide all forms
+            forms.forEach(form => form.classList.remove('active'));
+            
+            // Show profile section
+            profileSection.classList.add('active');
+            
+            // Populate profile data
+            document.getElementById('profile-avatar').src = userData.avatar || 'https://via.placeholder.com/100';
+            
+            const profileInfo = document.getElementById('profile-info');
+            profileInfo.innerHTML = `
+                <p><strong>ID:</strong> ${userData.id}</p>
+                <p><strong>Tên đăng nhập:</strong> ${userData.username}</p>
+                <p><strong>Email:</strong> ${userData.email}</p>
+                <p><strong>Họ và tên:</strong> ${userData.full_name || 'Chưa cập nhật'}</p>
+                <p><strong>Token:</strong> ${userData.token.substring(0, 20)}...</p>
+            `;
+        }
+
+        // Handle logout
+        logoutBtn.addEventListener('click', () => {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            
+            // Show login form
+            document.querySelector('[data-target="login-form"]').click();
+            
+            showAlert(successAlert, 'Đã đăng xuất thành công!');
+        });
+
+        // Check if user is already logged in on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            const token = localStorage.getItem('token');
+            const userData = localStorage.getItem('user');
+            
+            if (token && userData) {
+                try {
+                    // Kiểm tra token có hợp lệ không
+                    const response = await mockAPI.getProfile(token);
+                    if (response.status === 200) {
+                        const user = JSON.parse(userData);
+                        showProfile(user);
+                    } else {
+                        localStorage.removeItem('token');
+                        localStorage.removeItem('user');
+                    }
+                } catch (error) {
+                    console.error('Error checking auth status:', error);
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                }
+            }
+        });
+
+        // Thêm một số user mẫu để test
+        function addSampleUsers() {
+            if (mockAPI.users.length === 0) {
+                mockAPI.users = [
+                    {
+                        id: mockAPI.nextId++,
+                        username: 'testuser',
+                        email: 'test@example.com',
+                        password: '123456',
+                        full_name: 'Nguyễn Văn A',
+                        avatar: 'https://via.placeholder.com/150',
+                        created_at: new Date().toISOString()
+                    },
+                    {
+                        id: mockAPI.nextId++,
+                        username: 'demo',
+                        email: 'demo@example.com',
+                        password: '123456',
+                        full_name: 'Trần Thị B',
+                        avatar: 'https://via.placeholder.com/150',
+                        created_at: new Date().toISOString()
+                    }
+                ];
+                mockAPI.saveData();
+            }
+        }
+
+        // Thêm user mẫu khi trang được tải
+        addSampleUsers();
+    </script>
+</body>
+</html>
